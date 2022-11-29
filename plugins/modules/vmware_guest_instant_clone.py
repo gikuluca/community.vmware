@@ -1,8 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # Copyright: (c) 2021, Ansible Project
 # Copyright: (c) 2021, Anant Chopra <chopraan@vmware.com>
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # Make coding more python3-ish
 from __future__ import (absolute_import, division, print_function)
@@ -128,7 +130,6 @@ options:
         description:
           - domain is used to set A fully qualified domain name (FQDN) or complete domain name for Instant Cloned Guest operating System.
         type: str
-    version_added: '1.11.0'
     type: list
     elements: dict
   wait_vm_tools:
@@ -136,17 +137,14 @@ options:
       - Whether waiting until vm tools start after rebooting an instant clone vm.
     type: bool
     default: True
-    version_added: '1.12.0'
   wait_vm_tools_timeout:
     description:
       - Define a timeout (in seconds) for I(the wait_vm_tools) parameter.
     type: int
     default: 300
-    version_added: '1.12.0'
 extends_documentation_fragment:
 - community.vmware.vmware.documentation
 
-version_added: '1.9.0'
 author:
 - Anant Chopra (@Anant99-sys)
 
@@ -479,7 +477,7 @@ class VmwareGuestInstantClone(PyVmomi):
             self.module.fail_json(msg="Datastore not found.")
 
         if self.params['folder']:
-            self.folder = self.find_folder_by_name(folder_name=self.params['folder'])
+            self.folder = self.find_folder_by_fqpn(folder_name=self.params['folder'], datacenter_name=self.params['datacenter'], folder_type='vm')
             if self.folder is None:
                 self.module.fail_json(msg="Folder not found.")
         else:

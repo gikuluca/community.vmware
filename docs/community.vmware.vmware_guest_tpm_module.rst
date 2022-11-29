@@ -8,7 +8,6 @@ community.vmware.vmware_guest_tpm
 **Add or remove vTPM device for specified VM.**
 
 
-Version added: 1.16.0
 
 .. contents::
    :local:
@@ -21,13 +20,6 @@ Synopsis
 
 
 
-
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 2.6
-- PyVmomi
 
 
 Parameters
@@ -289,8 +281,6 @@ Notes
 -----
 
 .. note::
-   - Tested on vSphere 6.7
-   - Tested on vSphere 7.0
    - All modules requires API write access and hence is not supported on a free ESXi license.
 
 

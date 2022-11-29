@@ -4,7 +4,8 @@
 # Copyright: (c) 2015, Joseph Callen <jcallen () csc.com>
 # Copyright: (c) 2018, Ansible Project
 # Copyright: (c) 2018, Fedor Vompe <f.vompe () comptek.ru>
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -22,13 +23,8 @@ author:
 - Abhijeet Kasurde (@Akasurde)
 - Fedor Vompe (@sumkincpp)
 notes:
-- Tested on ESXi 6.7, vSphere 5.5 and vSphere 6.5
-- From 2.8 and onwards, information are returned as list of dict instead of dict.
 - Fact about C(moid) added in VMware collection 1.4.0.
 - Fact about C(datastore_url) is added in VMware collection 1.18.0.
-requirements:
-- python >= 2.6
-- PyVmomi
 options:
     vm_type:
       description:
@@ -61,6 +57,12 @@ options:
     show_tag:
       description:
         - Tags related to virtual machine are shown if set to C(True).
+      default: False
+      type: bool
+    show_allocated:
+      version_added: '2.5.0'
+      description:
+        - Allocated storage in byte and memory in MB are shown if it set to True.
       default: False
       type: bool
     vm_name:
@@ -227,7 +229,12 @@ virtual_machines:
                 "name": "tag_0001"
             }
         ],
-        "moid": "vm-24"
+        "moid": "vm-24",
+        "allocated": {
+            "storage": 500000000,
+            "cpu": 2,
+            "memory": 16
+        },
     }
   ]
 '''
@@ -238,10 +245,8 @@ except ImportError:
     pass
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.community.vmware.plugins.module_utils.vmware import (
-    PyVmomi, get_all_objs,
-    vmware_argument_spec, _get_vm_prop,
-    get_parent_datacenter, find_vm_by_name)
+from ansible_collections.community.vmware.plugins.module_utils.vmware import PyVmomi, \
+    get_all_objs, vmware_argument_spec, _get_vm_prop, get_parent_datacenter, find_vm_by_name
 from ansible_collections.community.vmware.plugins.module_utils.vmware_rest_client import VmwareRestClient
 
 
@@ -318,6 +323,10 @@ class VmwareVmInfo(PyVmomi):
             if esxi_parent and isinstance(esxi_parent, vim.ClusterComputeResource):
                 cluster_name = summary.runtime.host.parent.name
 
+            resource_pool = None
+            if vm.resourcePool and vm.resourcePool != vm.resourcePool.owner.resourcePool:
+                resource_pool = vm.resourcePool.name
+
             vm_attributes = dict()
             if self.module.params.get('show_attribute'):
                 vm_attributes = self.get_vm_attributes(vm)
@@ -326,12 +335,24 @@ class VmwareVmInfo(PyVmomi):
             if self.module.params.get('show_tag'):
                 vm_tags = self.get_tag_info(vm)
 
+            allocated = {}
+            if self.module.params.get('show_allocated'):
+                storage_allocated = 0
+                for device in vm.config.hardware.device:
+                    if isinstance(device, vim.vm.device.VirtualDisk):
+                        storage_allocated += device.capacityInBytes
+                allocated = {
+                    "storage": storage_allocated,
+                    "cpu": vm.config.hardware.numCPU,
+                    "memory": vm.config.hardware.memoryMB}
+
             vm_folder = PyVmomi.get_vm_path(content=self.content, vm_name=vm)
             datacenter = get_parent_datacenter(vm)
             datastore_url = list()
             datastore_attributes = ('name', 'url')
-            if vm.config.datastoreUrl:
-                for entry in vm.config.datastoreUrl:
+            vm_datastore_urls = _get_vm_prop(vm, ('config', 'datastoreUrl'))
+            if vm_datastore_urls:
+                for entry in vm_datastore_urls:
                     datastore_url.append({key: getattr(entry, key) for key in dir(entry) if key in datastore_attributes})
             virtual_machine = {
                 "guest_name": summary.config.name,
@@ -344,11 +365,13 @@ class VmwareVmInfo(PyVmomi):
                 "esxi_hostname": esxi_hostname,
                 "datacenter": datacenter.name,
                 "cluster": cluster_name,
+                "resource_pool": resource_pool,
                 "attributes": vm_attributes,
                 "tags": vm_tags,
                 "folder": vm_folder,
                 "moid": vm._moId,
                 "datastore_url": datastore_url,
+                "allocated": allocated
             }
 
             vm_type = self.module.params.get('vm_type')
@@ -368,6 +391,7 @@ def main():
         vm_type=dict(type='str', choices=['vm', 'all', 'template'], default='all'),
         show_attribute=dict(type='bool', default='no'),
         show_tag=dict(type='bool', default=False),
+        show_allocated=dict(type='bool', default=False),
         folder=dict(type='str'),
         vm_name=dict(type='str')
     )

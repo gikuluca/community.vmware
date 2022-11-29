@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-#
+
 # Copyright: (c) 2015, Joseph Callen <jcallen () csc.com>
 # Copyright: (c) 2018, Abhijeet Kasurde <akasurde@redhat.com>
 # Copyright: (c) 2018, Christian Kotte <christian.kotte@gmx.de>
 # Copyright: (c) 2018, Ansible Project
-#
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -22,11 +22,6 @@ author:
 - Joseph Callen (@jcpowermac)
 - Abhijeet Kasurde (@Akasurde)
 - Christian Kotte (@ckotte)
-notes:
-    - Tested on vSphere 6.5, 6.7 and 7.0
-requirements:
-    - "python >= 2.6"
-    - PyVmomi
 options:
     datacenter_name:
         description:
@@ -147,7 +142,6 @@ options:
             teaming_failover_interval: 0,
         }
     network_policy:
-        version_added: '1.11.0'
         description:
             - Dictionary which configures the different default security values for portgroups.
             - If set, these options are inherited by the portgroups of the DVS.
@@ -189,6 +183,51 @@ options:
             - '   folder: /folder1/datacenter1/network/folder2'
         required: False
         type: str
+    net_flow:
+        version_added: '2.7.0'
+        description:
+            - Dictionary which configures the Net Flow for the Distributed Switch.
+        suboptions:
+            collector_ip:
+                type: str
+                description: The IP Address (IPv4 or IPv6) of the NetFlow collector.
+            collector_port:
+                type: int
+                description: The Port of the NetFlow collector.
+                default: 0
+            observation_domain_id:
+                type: int
+                description: Identifies the information related to the switch.
+                default: 0
+            active_flow_timeout:
+                type: int
+                description: The time, in seconds, to wait before sending information after the flow is initiated.
+                default: 60
+            idle_flow_timeout:
+                type: int
+                description: The time, in seconds, to wait before sending information after the flow is initiated.
+                default: 15
+            sampling_rate:
+                type: int
+                description:
+                    - The portion of data that the switch collects.
+                    - The sampling rate represents the number of packets that NetFlow drops after every collected packet.
+                    - If the rate is 0, NetFlow samples every packet, that is, collect one packet and drop none.
+                    - If the rate is 1, NetFlow samples a packet and drops the next one, and so on.
+                default: 4096
+            internal_flows_only:
+                type: bool
+                description: If True, data on network activity between vms on the same host will be collected only.
+                default: False
+        type: dict
+        default: {
+            'collector_port': 0,
+            'observation_domain_id': 0,
+            'active_flow_timeout': 60,
+            'idle_flow_timeout': 15,
+            'sampling_rate': 4096,
+            'internal_flows_only': False
+        }
 extends_documentation_fragment:
 - community.vmware.vmware.documentation
 
@@ -229,6 +268,14 @@ EXAMPLES = r'''
       vlan_mtu_interval: 1
       teaming_failover: true
       teaming_failover_interval: 1
+    net_flow:
+        collector_ip: 192.168.10.50
+        collector_port: 50034
+        observation_domain_id: 0
+        active_flow_timeout: 60
+        idle_flow_timeout: 15
+        sampling_rate: 4096
+        internal_flows_only: False
     state: present
   delegate_to: localhost
 
@@ -260,6 +307,13 @@ result:
         "health_check_teaming_interval": 0,
         "health_check_vlan": false,
         "health_check_vlan_interval": 0,
+        "net_flow_collector_ip": "192.168.10.50",
+        "net_flow_collector_port": 50034,
+        "net_flow_observation_domain_id": 0,
+        "net_flow_active_flow_timeout": 60,
+        "net_flow_idle_flow_timeout": 15,
+        "net_flow_sampling_rate": 4096,
+        "net_flow_internal_flows_only": False,
         "mtu": 9000,
         "multicast_filtering_mode": "basic",
         "result": "DVS already configured properly",
@@ -280,7 +334,7 @@ except ImportError:
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_native
 from ansible_collections.community.vmware.plugins.module_utils.vmware import (
-    PyVmomi, TaskError, dvs_supports_mac_learning, find_dvs_by_name, vmware_argument_spec, wait_for_task
+    PyVmomi, TaskError, find_dvs_by_name, vmware_argument_spec, wait_for_task
 )
 
 
@@ -339,6 +393,14 @@ class VMwareDvSwitch(PyVmomi):
         self.network_policy = self.module.params['network_policy']
         if self.network_policy is None:
             self.network_policy = {}
+
+        self.netFlow_collector_ip = self.module.params['net_flow'].get('collector_ip') or None
+        self.netFlow_collector_port = self.module.params['net_flow'].get('collector_port')
+        self.netFlow_observation_domain_id = self.module.params['net_flow'].get('observation_domain_id')
+        self.netFlow_active_flow_timeout = self.module.params['net_flow'].get('active_flow_timeout')
+        self.netFlow_idle_flow_timeout = self.module.params['net_flow'].get('idle_flow_timeout')
+        self.netFlow_sampling_rate = self.module.params['net_flow'].get('sampling_rate')
+        self.netFlow_internal_flows_only = self.module.params['net_flow'].get('internal_flows_only')
 
         self.state = self.module.params['state']
 
@@ -460,12 +522,24 @@ class VMwareDvSwitch(PyVmomi):
                 if changed_network_policy:
                     if spec.defaultPortConfig is None:
                         spec.defaultPortConfig = vim.dvs.VmwareDistributedVirtualSwitch.VmwarePortConfigPolicy()
-                    if isinstance(result[0], vim.dvs.VmwareDistributedVirtualSwitch.MacManagementPolicy):
-                        spec.defaultPortConfig.macManagementPolicy = result[0]
-                    else:
-                        spec.defaultPortConfig.securityPolicy = result[0]
+                    spec.defaultPortConfig.macManagementPolicy = result[0]
 
-            if changed_multicast or changed_network_policy:
+            # Set NetFlow config
+            if self.netFlow_collector_ip is not None:
+                results['net_flow_collector_ip'] = self.netFlow_collector_ip
+                results['net_flow_collector_port'] = self.netFlow_collector_port
+                results['net_flow_observation_domain_id'] = self.netFlow_observation_domain_id
+                results['net_flow_active_flow_timeout'] = self.netFlow_active_flow_timeout
+                results['net_flow_idle_flow_timeout'] = self.netFlow_idle_flow_timeout
+                results['net_flow_sampling_rate'] = self.netFlow_sampling_rate
+                results['net_flow_internal_flows_only'] = self.netFlow_internal_flows_only
+            result = self.check_netFlow_config()
+
+            changed_netFlow = result[1]
+            if changed_netFlow:
+                spec.ipfixConfig = result[0]
+
+            if changed_multicast or changed_network_policy or changed_netFlow:
                 self.update_dvs_config(self.dvs, spec)
 
             # Set Health Check config
@@ -527,42 +601,22 @@ class VMwareDvSwitch(PyVmomi):
         promiscuous_previous = forged_transmits_previous = mac_changes_previous = None
         current_config = self.dvs.config.defaultPortConfig
 
-        # If the dvSwitch supports MAC learning, it's a version where securityPolicy is deprecated
-        if dvs_supports_mac_learning(self.dvs):
-            policy = vim.dvs.VmwareDistributedVirtualSwitch.MacManagementPolicy()
+        policy = vim.dvs.VmwareDistributedVirtualSwitch.MacManagementPolicy()
 
-            if 'promiscuous' in self.network_policy and current_config.macManagementPolicy.allowPromiscuous != self.network_policy['promiscuous']:
-                changed_promiscuous = True
-                promiscuous_previous = current_config.macManagementPolicy.allowPromiscuous
-                policy.allowPromiscuous = self.network_policy['promiscuous']
+        if 'promiscuous' in self.network_policy and current_config.macManagementPolicy.allowPromiscuous != self.network_policy['promiscuous']:
+            changed_promiscuous = True
+            promiscuous_previous = current_config.macManagementPolicy.allowPromiscuous
+            policy.allowPromiscuous = self.network_policy['promiscuous']
 
-            if 'forged_transmits' in self.network_policy and current_config.macManagementPolicy.forgedTransmits != self.network_policy['forged_transmits']:
-                changed_forged_transmits = True
-                forged_transmits_previous = current_config.macManagementPolicy.forgedTransmits
-                policy.forgedTransmits = self.network_policy['forged_transmits']
+        if 'forged_transmits' in self.network_policy and current_config.macManagementPolicy.forgedTransmits != self.network_policy['forged_transmits']:
+            changed_forged_transmits = True
+            forged_transmits_previous = current_config.macManagementPolicy.forgedTransmits
+            policy.forgedTransmits = self.network_policy['forged_transmits']
 
-            if 'mac_changes' in self.network_policy and current_config.macManagementPolicy.macChanges != self.network_policy['mac_changes']:
-                changed_mac_changes = True
-                mac_changes_previous = current_config.macManagementPolicy.macChanges
-                policy.macChanges = self.network_policy['mac_changes']
-
-        else:
-            policy = vim.dvs.VmwareDistributedVirtualSwitch.SecurityPolicy()
-
-            if 'promiscuous' in self.network_policy and current_config.securityPolicy.allowPromiscuous.value != self.network_policy['promiscuous']:
-                changed_promiscuous = True
-                promiscuous_previous = current_config.securityPolicy.allowPromiscuous.value
-                policy.allowPromiscuous = vim.BoolPolicy(value=self.network_policy['promiscuous'])
-
-            if 'forged_transmits' in self.network_policy and current_config.securityPolicy.forgedTransmits.value != self.network_policy['forged_transmits']:
-                changed_forged_transmits = True
-                forged_transmits_previous = current_config.securityPolicy.forgedTransmits.value
-                policy.forgedTransmits = vim.BoolPolicy(value=self.network_policy['forged_transmits'])
-
-            if 'mac_changes' in self.network_policy and current_config.securityPolicy.macChanges.value != self.network_policy['mac_changes']:
-                changed_mac_changes = True
-                mac_changes_previous = current_config.securityPolicy.macChanges.value
-                policy.macChanges = vim.BoolPolicy(value=self.network_policy['mac_changes'])
+        if 'mac_changes' in self.network_policy and current_config.macManagementPolicy.macChanges != self.network_policy['mac_changes']:
+            changed_mac_changes = True
+            mac_changes_previous = current_config.macManagementPolicy.macChanges
+            policy.macChanges = self.network_policy['mac_changes']
 
         changed = changed_promiscuous or changed_forged_transmits or changed_mac_changes
         return (policy, changed, changed_promiscuous, promiscuous_previous, changed_forged_transmits,
@@ -610,6 +664,54 @@ class VMwareDvSwitch(PyVmomi):
         except TaskError as invalid_argument:
             self.module.fail_json(msg="Failed to update health check config : %s" % to_native(invalid_argument))
 
+    def check_netFlow_config(self):
+        """Check NetFlow config"""
+        changed = changed_collectorIpAddress = changed_collectorPort = changed_observationDomainId = \
+            changed_activeFlowTimeout = changed_idleFlowTimeout = changed_samplingRate = changed_internalFlowsOnly = False
+        collectorIpAddress_previous = collectorPort_previous = observationDomainId_previous = activeFlowTimeout_previous = \
+            idleFlowTimeout_previous = samplingRate_previous = internalFlowsOnly_previous = None
+
+        current_config = self.dvs.config.ipfixConfig
+        if current_config is None:
+            new_config = vim.dvs.VmwareDistributedVirtualSwitch.IpfixConfig()
+        else:
+            new_config = current_config
+
+        if self.netFlow_collector_ip is not None:
+            if current_config.collectorIpAddress != self.netFlow_collector_ip:
+                changed = changed_collectorIpAddress = True
+                collectorIpAddress_previous = current_config.collectorIpAddress
+                new_config.collectorIpAddress = self.netFlow_collector_ip
+            if current_config.collectorPort != self.netFlow_collector_port:
+                changed = changed_collectorPort = True
+                collectorPort_previous = current_config.collectorPort
+                new_config.collectorPort = self.netFlow_collector_port
+            if current_config.observationDomainId != self.netFlow_observation_domain_id:
+                changed = changed_observationDomainId = True
+                observationDomainId_previous = current_config.observationDomainId
+                new_config.observationDomainId = self.netFlow_observation_domain_id
+            if current_config.activeFlowTimeout != self.netFlow_active_flow_timeout:
+                changed = changed_activeFlowTimeout = True
+                activeFlowTimeout_previous = current_config.activeFlowTimeout
+                new_config.activeFlowTimeout = self.netFlow_active_flow_timeout
+            if current_config.idleFlowTimeout != self.netFlow_idle_flow_timeout:
+                changed = changed_idleFlowTimeout = True
+                idleFlowTimeout_previous = current_config.idleFlowTimeout
+                new_config.idleFlowTimeout = self.netFlow_idle_flow_timeout
+            if current_config.samplingRate != self.netFlow_sampling_rate:
+                changed = changed_samplingRate = True
+                samplingRate_previous = current_config.samplingRate
+                new_config.samplingRate = self.netFlow_sampling_rate
+            if current_config.internalFlowsOnly != self.netFlow_internal_flows_only:
+                changed = changed_internalFlowsOnly = True
+                internalFlowsOnly_previous = current_config.internalFlowsOnly
+                new_config.internalFlowsOnly = self.netFlow_internal_flows_only
+
+        return (new_config, changed, changed_collectorIpAddress, collectorIpAddress_previous,
+                changed_collectorPort, collectorPort_previous, changed_observationDomainId, observationDomainId_previous,
+                changed_activeFlowTimeout, activeFlowTimeout_previous, changed_idleFlowTimeout, idleFlowTimeout_previous,
+                changed_samplingRate, samplingRate_previous, changed_internalFlowsOnly, internalFlowsOnly_previous)
+
     def exit_unchanged(self):
         """Exit with status message"""
         changed = False
@@ -636,7 +738,7 @@ class VMwareDvSwitch(PyVmomi):
 
     def update_dvswitch(self):
         """Check and update DVS settings"""
-        changed = changed_settings = changed_ldp = changed_version = changed_health_check = changed_network_policy = False
+        changed = changed_settings = changed_ldp = changed_version = changed_health_check = changed_network_policy = changed_netFlow = False
         results = dict(changed=changed)
         results['dvswitch'] = self.switch_name
         changed_list = []
@@ -780,10 +882,7 @@ class VMwareDvSwitch(PyVmomi):
                 if config_spec.defaultPortConfig is None:
                     config_spec.defaultPortConfig = vim.dvs.VmwareDistributedVirtualSwitch.VmwarePortConfigPolicy()
 
-                if isinstance(policy, vim.dvs.VmwareDistributedVirtualSwitch.MacManagementPolicy):
-                    config_spec.defaultPortConfig.macManagementPolicy = policy
-                else:
-                    config_spec.defaultPortConfig.securityPolicy = policy
+                config_spec.defaultPortConfig.macManagementPolicy = policy
 
         # Check switch version
         if self.switch_version:
@@ -798,6 +897,39 @@ class VMwareDvSwitch(PyVmomi):
             changed = True
             changed_list.append("switch version")
             results['version_previous'] = self.dvs.config.productInfo.version
+
+        # Check NetFlow Config
+        if self.netFlow_collector_ip is not None:
+            results['net_flow_collector_ip'] = self.netFlow_collector_ip
+            results['net_flow_collector_port'] = self.netFlow_collector_port
+            results['net_flow_observation_domain_id'] = self.netFlow_observation_domain_id
+            results['net_flow_active_flow_timeout'] = self.netFlow_active_flow_timeout
+            results['net_flow_idle_flow_timeout'] = self.netFlow_idle_flow_timeout
+            results['net_flow_sampling_rate'] = self.netFlow_sampling_rate
+            results['net_flow_internal_flows_only'] = self.netFlow_internal_flows_only
+        (ipfixConfig, changed_netFlow, changed_collectorIpAddress, collectorIpAddress_previous,
+         changed_collectorPort, collectorPort_previous, changed_observationDomainId, observationDomainId_previous,
+         changed_activeFlowTimeout, activeFlowTimeout_previous, changed_idleFlowTimeout, idleFlowTimeout_previous,
+         changed_samplingRate, samplingRate_previous, changed_internalFlowsOnly, internalFlowsOnly_previous) = self.check_netFlow_config()
+        if changed_netFlow:
+            changed = changed_settings = True
+            changed_list.append("netFlow")
+            if changed_collectorIpAddress:
+                results['net_flow_collector_ip_previous'] = collectorIpAddress_previous
+            if changed_collectorPort:
+                results['net_flow_collector_port_previous'] = collectorPort_previous
+            if changed_observationDomainId:
+                results['net_flow_observation_domain_id_previous'] = observationDomainId_previous
+            if changed_activeFlowTimeout:
+                results['net_flow_active_flow_timeout_previous'] = activeFlowTimeout_previous
+            if changed_idleFlowTimeout:
+                results['net_flow_idle_flow_timeout_previous'] = idleFlowTimeout_previous
+            if changed_samplingRate:
+                results['net_flow_sampling_rate_previous'] = samplingRate_previous
+            if changed_internalFlowsOnly:
+                results['net_flow_internal_flows_only_previous'] = internalFlowsOnly_previous
+
+            config_spec.ipfixConfig = ipfixConfig
 
         if changed:
             if self.module.check_mode:
@@ -882,6 +1014,26 @@ def main():
                     promiscuous=dict(type='bool', default=False),
                     forged_transmits=dict(type='bool', default=False),
                     mac_changes=dict(type='bool', default=False)
+                ),
+            ),
+            net_flow=dict(
+                type='dict',
+                options=dict(
+                    collector_ip=dict(type='str'),
+                    collector_port=dict(type='int', default=0),
+                    observation_domain_id=dict(type='int', default=0),
+                    active_flow_timeout=dict(type='int', default=60),
+                    idle_flow_timeout=dict(type='int', default=15),
+                    sampling_rate=dict(type='int', default=4096),
+                    internal_flows_only=dict(type='bool', default=False),
+                ),
+                default=dict(
+                    collector_port=0,
+                    observation_domain_id=0,
+                    active_flow_timeout=60,
+                    idle_flow_timeout=15,
+                    sampling_rate=4096,
+                    internal_flows_only=False,
                 ),
             ),
         )

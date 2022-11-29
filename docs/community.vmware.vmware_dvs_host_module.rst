@@ -20,13 +20,6 @@ Synopsis
 
 
 
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 2.7
-- PyVmomi
-
 
 Parameters
 ----------
@@ -81,7 +74,6 @@ Parameters
                         <span style="color: purple">list</span>
                          / <span style="color: purple">elements=dictionary</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.12.0</div>
                 </td>
                 <td>
                 </td>
@@ -344,7 +336,6 @@ Notes
 -----
 
 .. note::
-   - Tested on vSphere 5.5
    - All modules requires API write access and hence is not supported on a free ESXi license.
 
 

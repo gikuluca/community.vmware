@@ -25,8 +25,6 @@ Requirements
 ------------
 The below requirements are needed on the local Ansible controller node that executes this inventory.
 
-- Python >= 2.7
-- PyVmomi
 - requests >= 2.3
 - vSphere Automation SDK - For tag feature
 
@@ -247,6 +245,7 @@ Parameters
                     <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
                     <div style="font-size: small">
                         <span style="color: purple">list</span>
+                         / <span style="color: purple">elements=string</span>
                     </div>
                 </td>
                 <td>
@@ -468,6 +467,7 @@ Parameters
                     <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
                     <div style="font-size: small">
                         <span style="color: purple">list</span>
+                         / <span style="color: purple">elements=string</span>
                     </div>
                 </td>
                 <td>
@@ -496,7 +496,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">string</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.12.0</div>
                 </td>
                 <td>
                 </td>
@@ -517,7 +516,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">integer</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.12.0</div>
                 </td>
                 <td>
                 </td>
@@ -535,6 +533,7 @@ Parameters
                     <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
                     <div style="font-size: small">
                         <span style="color: purple">list</span>
+                         / <span style="color: purple">elements=dictionary</span>
                     </div>
                 </td>
                 <td>
@@ -920,6 +919,26 @@ Examples
           - 'guest.ipAddress'
           - 'guest.guestFamily'
           - 'guest.ipStack'
+
+    # Select a specific IP address for use by ansible when multiple NICs are present on the VM
+        plugin: community.vmware.vmware_vm_inventory
+        strict: False
+        hostname: 10.65.223.31
+        username: administrator@vsphere.local
+        password: Esxi@123$%
+        validate_certs: False
+        compose:
+          # Set the IP address used by ansible to one that starts by 10.42. or 10.43.
+          ansible_host: >-
+            guest.net
+            | selectattr('ipAddress')
+            | map(attribute='ipAddress')
+            | flatten
+            | select('match', '^10.42.*|^10.43.*')
+            | list
+            | first
+        properties:
+          - guest.net
 
 
 

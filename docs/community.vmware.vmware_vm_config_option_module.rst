@@ -8,7 +8,6 @@ community.vmware.vmware_vm_config_option
 **Return supported guest ID list and VM recommended config option for specific guest OS**
 
 
-Version added: 1.15.0
 
 .. contents::
    :local:
@@ -21,14 +20,6 @@ Synopsis
 
 
 
-
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 2.6
-- PyVmomi
-- System.View privilege
 
 
 Parameters
@@ -317,8 +308,6 @@ Notes
 -----
 
 .. note::
-   - Tested on vSphere 6.5
-   - Tested on vSphere 6.7
    - Known issue on vSphere 7.0 (https://github.com/vmware/pyvmomi/issues/915)
    - All modules requires API write access and hence is not supported on a free ESXi license.
 

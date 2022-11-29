@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Copyright: (c) 2018, Abhijeet Kasurde <akasurde@redhat.com>
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -19,11 +20,6 @@ description:
 - Please specify C(hostname) as vCenter IP or hostname only, as lockdown operations are not possible from standalone ESXi server.
 author:
 - Abhijeet Kasurde (@Akasurde)
-notes:
-- Tested on vSphere 6.5
-requirements:
-- python >= 2.6
-- PyVmomi
 options:
   cluster_name:
     description:
@@ -41,12 +37,14 @@ options:
   state:
     description:
     - State of hosts system
-    - If set to C(present), all host systems will be set in lockdown mode.
-    - If host system is already in lockdown mode and set to C(present), no action will be taken.
-    - If set to C(absent), all host systems will be removed from lockdown mode.
-    - If host system is already out of lockdown mode and set to C(absent), no action will be taken.
-    default: present
-    choices: [ present, absent ]
+    - If set to C(disabled), all host systems will be removed from lockdown mode.
+    - If host system is already out of lockdown mode and set to C(disabled), no action will be taken.
+    - If set to C(normal), all host systems will be set in lockdown mode.
+    - If host system is already in lockdown mode and set to C(normal), no action will be taken.
+    - If set to C(strict), all host systems will be set in strict lockdown mode.
+    - If host system is already in strict lockdown mode and set to C(strict), no action will be taken.
+    default: normal
+    choices: [ disabled, normal, strict, present, absent ]
     type: str
 extends_documentation_fragment:
 - community.vmware.vmware.documentation
@@ -60,7 +58,7 @@ EXAMPLES = r'''
     username: '{{ vcenter_username }}'
     password: '{{ vcenter_password }}'
     esxi_hostname: '{{ esxi_hostname }}'
-    state: present
+    state: normal
   delegate_to: localhost
 
 - name: Exit host systems from lockdown mode
@@ -69,7 +67,7 @@ EXAMPLES = r'''
     username: '{{ vcenter_username }}'
     password: '{{ vcenter_password }}'
     esxi_hostname: '{{ esxi_hostname }}'
-    state: absent
+    state: disabled
   delegate_to: localhost
 
 - name: Enter host systems into lockdown mode
@@ -80,7 +78,7 @@ EXAMPLES = r'''
     esxi_hostname:
         - '{{ esxi_hostname_1 }}'
         - '{{ esxi_hostname_2 }}'
-    state: present
+    state: normal
   delegate_to: localhost
 
 - name: Exit host systems from lockdown mode
@@ -91,7 +89,7 @@ EXAMPLES = r'''
     esxi_hostname:
         - '{{ esxi_hostname_1 }}'
         - '{{ esxi_hostname_2 }}'
-    state: absent
+    state: disabled
   delegate_to: localhost
 
 - name: Enter all host system from cluster into lockdown mode
@@ -100,7 +98,7 @@ EXAMPLES = r'''
     username: '{{ vcenter_username }}'
     password: '{{ vcenter_password }}'
     cluster_name: '{{ cluster_name }}'
-    state: present
+    state: normal
   delegate_to: localhost
 '''
 
@@ -112,9 +110,9 @@ results:
     sample: {
                 "host_lockdown_state": {
                     "DC0_C0": {
-                        "current_state": "present",
-                        "previous_state": "absent",
-                        "desired_state": "present",
+                        "current_state": "normal",
+                        "previous_state": "disabled",
+                        "desired_state": "normal",
                     },
                 }
             }
@@ -149,41 +147,39 @@ class VmwareLockdownManager(PyVmomi):
         results = dict(changed=False, host_lockdown_state=dict())
         change_list = []
         desired_state = self.params.get('state')
+
+        if desired_state == 'present':
+            self.module.warn("'present' will be removed in a future version. Please use 'normal' instead.")
+            desired_state = 'normal'
+        elif desired_state == 'absent':
+            self.module.warn("'absent' will be removed in a future version. Please use 'disabled' instead.")
+            desired_state = 'disabled'
+
         for host in self.hosts:
-            results['host_lockdown_state'][host.name] = dict(current_state='',
+            current_state_api = host.configManager.hostAccessManager.lockdownMode
+            current_state = current_state_api[8:].lower()
+            results['host_lockdown_state'][host.name] = dict(current_state=desired_state,
                                                              desired_state=desired_state,
-                                                             previous_state=''
+                                                             previous_state=current_state
                                                              )
             changed = False
-            try:
-                if host.config.adminDisabled:
-                    results['host_lockdown_state'][host.name]['previous_state'] = 'present'
-                    if desired_state == 'absent':
-                        if not self.module.check_mode:
-                            host.ExitLockdownMode()
-                        results['host_lockdown_state'][host.name]['current_state'] = 'absent'
-                        changed = True
-                    else:
-                        results['host_lockdown_state'][host.name]['current_state'] = 'present'
-                elif not host.config.adminDisabled:
-                    results['host_lockdown_state'][host.name]['previous_state'] = 'absent'
-                    if desired_state == 'present':
-                        if not self.module.check_mode:
-                            host.EnterLockdownMode()
-                        results['host_lockdown_state'][host.name]['current_state'] = 'present'
-                        changed = True
-                    else:
-                        results['host_lockdown_state'][host.name]['current_state'] = 'absent'
-            except vim.fault.HostConfigFault as host_config_fault:
-                self.module.fail_json(msg="Failed to manage lockdown mode for esxi"
-                                          " hostname %s : %s" % (host.name, to_native(host_config_fault.msg)))
-            except vim.fault.AdminDisabled as admin_disabled:
-                self.module.fail_json(msg="Failed to manage lockdown mode as administrator "
-                                          "permission has been disabled for "
-                                          "esxi hostname %s : %s" % (host.name, to_native(admin_disabled.msg)))
-            except Exception as generic_exception:
-                self.module.fail_json(msg="Failed to manage lockdown mode due to generic exception for esxi "
-                                          "hostname %s : %s" % (host.name, to_native(generic_exception)))
+            if current_state != desired_state:
+                changed = True
+                if not self.module.check_mode:
+                    try:
+                        desired_state_api = 'lockdown' + desired_state.capitalize()
+                        host.configManager.hostAccessManager.ChangeLockdownMode(desired_state_api)
+                    except vim.fault.HostConfigFault as host_config_fault:
+                        self.module.fail_json(msg="Failed to manage lockdown mode for esxi"
+                                                  " hostname %s : %s" % (host.name, to_native(host_config_fault.msg)))
+                    except vim.fault.AdminDisabled as admin_disabled:
+                        self.module.fail_json(msg="Failed to manage lockdown mode as administrator "
+                                                  "permission has been disabled for "
+                                                  "esxi hostname %s : %s" % (host.name, to_native(admin_disabled.msg)))
+                    except Exception as generic_exception:
+                        self.module.fail_json(msg="Failed to manage lockdown mode due to generic exception for esxi "
+                                                  "hostname %s : %s" % (host.name, to_native(generic_exception)))
+
             change_list.append(changed)
 
         if any(change_list):
@@ -197,7 +193,7 @@ def main():
     argument_spec.update(
         cluster_name=dict(type='str', required=False),
         esxi_hostname=dict(type='list', required=False, elements='str'),
-        state=dict(type='str', default='present', choices=['present', 'absent'], required=False),
+        state=dict(type='str', default='normal', choices=['disabled', 'normal', 'strict', 'present', 'absent'], required=False),
     )
 
     module = AnsibleModule(

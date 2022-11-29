@@ -8,7 +8,6 @@ community.vmware.vcenter_domain_user_group_info
 **Gather user or group information of a domain**
 
 
-Version added: 1.6.0
 
 .. contents::
    :local:
@@ -20,13 +19,6 @@ Synopsis
 - This module can be used to gather information about user or group of a domain.
 
 
-
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 2.7
-- PyVmomi
 
 
 Parameters

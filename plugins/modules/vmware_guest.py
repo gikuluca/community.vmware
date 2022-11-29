@@ -1,8 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-#
+
 # This module is also sponsored by E.T.A.I. (www.etai.fr)
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -21,9 +22,6 @@ author:
 - Loic Blot (@nerzhul) <loic.blot@unix-experience.fr>
 - Philippe Dellaert (@pdellaert) <philippe@dellaert.org>
 - Abhijeet Kasurde (@Akasurde) <akasurde@redhat.com>
-requirements:
-- python >= 2.6
-- PyVmomi
 notes:
     - Please make sure that the user used for M(community.vmware.vmware_guest) has the correct level of privileges.
     - For example, following is the list of minimum privileges required by users to create virtual machines.
@@ -34,7 +32,6 @@ notes:
     - "   Network > Assign Network"
     - "   Resource > Assign Virtual Machine to Resource Pool"
     - "Module may require additional privileges as well, which may be required for gathering facts - e.g. ESXi configurations."
-    - Tested on vSphere 5.5, 6.0, 6.5 and 6.7.
     - Use SCSI disks instead of IDE when you want to expand online disks by specifying a SCSI controller.
     - Uses SysPrep for Windows VM (depends on 'guest_id' parameter match 'win') with PyVmomi.
     - In order to change the VM's parameters (e.g. number of CPUs), the VM must be powered off unless the hot-add
@@ -126,6 +123,7 @@ options:
     type: str
   hardware:
     type: dict
+    default: {}
     description:
     - "Manage virtual machine's hardware attributes."
     - All parameters case sensitive.
@@ -151,6 +149,23 @@ options:
         num_cpu_cores_per_socket:
             type: int
             description: Number of Cores Per Socket.
+        cpu_shares_level:
+            type: str
+            choices: [ 'low', 'normal', 'high', 'custom' ]
+            description:
+            - The allocation level of CPU resources for the virtual machine.
+            - Valid Values are C(low), C(normal), C(high) and C(custom).
+            version_added: '3.2.0'
+        cpu_shares:
+            type: int
+            description:
+            - The number of shares of CPU allocated to this virtual machine
+            - cpu_shares_level will automatically be set to 'custom'
+            version_added: '3.2.0'
+        vpmc_enabled:
+            version_added: '3.2.0'
+            type: bool
+            description: Enable virtual CPU Performance Counters.
         scsi:
             type: str
             description:
@@ -160,7 +175,6 @@ options:
         secure_boot:
             type: bool
             description: Whether to enable or disable (U)EFI secure boot.
-            version_added: '1.11.0'
         memory_reservation_lock:
             type: bool
             description:
@@ -178,6 +192,19 @@ options:
             type: int
             description: The amount of memory resource that is guaranteed available to the virtual machine.
             aliases: [ 'memory_reservation' ]
+        mem_shares_level:
+            type: str
+            description:
+            - The allocation level of memory resources for the virtual machine.
+            - Valid Values are C(low), C(normal), C(high) and C(custom).
+            choices: [ 'low', 'normal', 'high', 'custom' ]
+            version_added: '3.2.0'
+        mem_shares:
+            type: int
+            description:
+            - The number of shares of memory allocated to this virtual machine
+            - mem_shares_level will automatically be set to 'custom'
+            version_added: '3.2.0'
         cpu_limit:
             type: int
             description:
@@ -214,7 +241,6 @@ options:
         iommu:
             type: bool
             description: Flag to specify if I/O MMU is enabled for this virtual machine.
-            version_added: '1.11.0'
   guest_id:
     type: str
     description:
@@ -236,6 +262,7 @@ options:
     - 'Attributes C(controller_type), C(controller_number), C(unit_number) are used to configure multiple types of disk
       controllers and disks for creating or reconfiguring virtual machine. Added in Ansible 2.10.'
     type: list
+    default: []
     elements: dict
     suboptions:
         size:
@@ -323,7 +350,7 @@ options:
     - Make sure that the host or the cluster on which the virtual machine resides has available PMem resources.
     - To add or remove virtual NVDIMM device to the existing virtual machine, it must be in power off state.
     type: dict
-    version_added: '1.13.0'
+    default: {}
     suboptions:
         state:
              type: str
@@ -350,6 +377,7 @@ options:
       configuration support.'
     - For C(ide) controller, hot-add or hot-remove CD-ROM is not supported.
     type: raw
+    default: []
     suboptions:
         type:
             type: str
@@ -478,7 +506,7 @@ options:
     - Incorrect key and values will be ignored.
     elements: dict
     type: list
-    version_added: '1.8.0'
+    default: []
   annotation:
     description:
     - A note or annotation to include in the virtual machine.
@@ -491,12 +519,17 @@ options:
     - Incorrect key and values will be ignored.
     elements: dict
     type: list
+    default: []
   networks:
     description:
     - A list of networks (in the order of the NICs).
     - Removing NICs is not allowed, while reconfiguring the virtual machine.
     - All parameters and VMware object names are case sensitive.
+    - The I(type), I(ip), I(netmask), I(gateway), I(domain), I(dns_servers) options don't set to a guest when creating a blank new virtual machine.
+      They are set by the customization via vmware-tools.
+      If you want to set the value of the options to a guest, you need to clone from a template with installed OS and vmware-tools(also Perl when Linux).
     type: list
+    default: []
     elements: dict
     suboptions:
         name:
@@ -572,7 +605,6 @@ options:
             type: bool
             description:
             - Indicates whether the NIC is currently connected.
-            version_added: '1.5.0'
         start_connected:
             type: bool
             description:
@@ -628,6 +660,14 @@ options:
             description:
             - Specifies whether the hardware clock is in UTC or local time.
             - Specific to Linux customization.
+        script_text:
+            type: str
+            description:
+            - Script to run with shebang.
+            - Needs to be enabled in vmware tools with vmware-toolbox-cmd config set deployPkg enable-custom-scripts true
+            - https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.vm_admin.doc/GUID-9A5093A5-C54F-4502-941B-3F9C0F573A39.html
+            - Specific to Linux customization.
+            version_added: '3.1.0'
         autologon:
             type: bool
             description:
@@ -695,11 +735,13 @@ options:
             - List of commands to run at first user logon.
             - Specific to Windows customization.
     type: dict
+    default: {}
   vapp_properties:
     description:
     - A list of vApp properties.
     - 'For full list of attributes and types refer to: U(https://code.vmware.com/apis/704/vsphere/vim.vApp.PropertyInfo.html)'
     type: list
+    default: []
     elements: dict
     suboptions:
         id:
@@ -797,6 +839,8 @@ EXAMPLES = r'''
       memory_reservation_lock: True
       mem_limit: 8096
       mem_reservation: 4096
+      cpu_shares_level: "high"
+      mem_shares_level: "high"
       cpu_limit: 8096
       cpu_reservation: 4096
       max_connections: 5
@@ -874,6 +918,9 @@ EXAMPLES = r'''
       dns_suffix:
         - example.com
         - example2.com
+      script_text: |
+        #!/bin/bash
+        touch /tmp/touch-from-playbook
   delegate_to: localhost
 
 - name: Rename a virtual machine (requires the virtual machine's uuid)
@@ -1200,6 +1247,44 @@ class PyVmomiHelper(PyVmomi):
         memory_allocation = vim.ResourceAllocationInfo()
         cpu_allocation = vim.ResourceAllocationInfo()
 
+        memory_shares_info = vim.SharesInfo()
+        cpu_shares_info = vim.SharesInfo()
+
+        mem_shares_level = self.params['hardware']['mem_shares_level']
+        if mem_shares_level is not None:
+            memory_shares_info.level = mem_shares_level
+            memory_allocation.shares = memory_shares_info
+
+            if vm_obj is None or \
+                    memory_allocation.shares.level != vm_obj.config.memoryAllocation.shares.level:
+                rai_change_detected = True
+
+        cpu_shares_level = self.params['hardware']['cpu_shares_level']
+        if cpu_shares_level is not None:
+            cpu_shares_info.level = cpu_shares_level
+            cpu_allocation.shares = cpu_shares_info
+            if vm_obj is None or \
+                    cpu_allocation.shares.level != vm_obj.config.cpuAllocation.shares.level:
+                rai_change_detected = True
+
+        mem_shares = self.params['hardware']['mem_shares']
+        if mem_shares is not None:
+            memory_shares_info.level = 'custom'
+            memory_shares_info.shares = mem_shares
+            memory_allocation.shares = memory_shares_info
+            if vm_obj is None or \
+                    memory_allocation.shares != vm_obj.config.memoryAllocation.shares:
+                rai_change_detected = True
+
+        cpu_shares = self.params['hardware']['cpu_shares']
+        if cpu_shares is not None:
+            cpu_shares_info.level = 'custom'
+            cpu_shares_info.shares = cpu_shares
+            cpu_allocation.shares = cpu_shares_info
+            if vm_obj is None or \
+                    cpu_allocation.shares != vm_obj.config.cpuAllocation.shares:
+                rai_change_detected = True
+
         mem_limit = self.params['hardware']['mem_limit']
         if mem_limit is not None:
             memory_allocation.limit = mem_limit
@@ -1309,6 +1394,16 @@ class PyVmomiHelper(PyVmomi):
             self.configspec.memoryReservationLockedToMax = memory_reservation_lock
             if vm_obj is None or self.configspec.memoryReservationLockedToMax != vm_obj.config.memoryReservationLockedToMax:
                 self.change_detected = True
+
+        vpmc_enabled = self.params['hardware']['vpmc_enabled']
+        if vpmc_enabled is not None:
+            # Allow VM to be powered on during this check when in check mode, when no changes will actually be made
+            if vm_obj and vm_obj.runtime.powerState == vim.VirtualMachinePowerState.poweredOn and \
+                    vm_obj.config.vPMCEnabled != vpmc_enabled and not self.module.check_mode:
+                self.module.fail_json(msg="Configure vPMC cpu operation is not supported when VM is power on")
+            if vm_obj is None or vpmc_enabled != vm_obj.config.vPMCEnabled:
+                self.change_detected = True
+                self.configspec.vPMCEnabled = vpmc_enabled
 
         boot_firmware = self.params['hardware']['boot_firmware']
         if boot_firmware is not None:
@@ -1959,8 +2054,7 @@ class PyVmomiHelper(PyVmomi):
 
         if vm_obj:
             # VM exists
-            # This is primarily for vcsim/integration tests, unset vAppConfig was not seen on my deployments
-            orig_spec = vm_obj.config.vAppConfig if vm_obj.config.vAppConfig else new_vmconfig_spec
+            orig_spec = vm_obj.config.vAppConfig
 
             vapp_properties_current = dict((x.id, x) for x in orig_spec.property)
             vapp_properties_to_change = dict((x['id'], x) for x in self.params['vapp_properties'])
@@ -2274,6 +2368,8 @@ class PyVmomiHelper(PyVmomi):
                 ident.timeZone = self.params['customization']['timezone']
             if self.params['customization']['hwclockUTC'] is not None:
                 ident.hwClockUTC = self.params['customization']['hwclockUTC']
+            if self.params['customization']['script_text'] is not None:
+                ident.scriptText = self.params['customization']['script_text']
 
         self.customspec = vim.vm.customization.Specification()
         self.customspec.nicSettingMap = adaptermaps
@@ -3299,8 +3395,13 @@ def main():
                 hotadd_cpu=dict(type='bool'),
                 hotadd_memory=dict(type='bool'),
                 hotremove_cpu=dict(type='bool'),
+                vpmc_enabled=dict(type='bool'),
                 max_connections=dict(type='int'),
                 mem_limit=dict(type='int'),
+                cpu_shares_level=dict(type='str', choices=['low', 'normal', 'high', 'custom']),
+                mem_shares_level=dict(type='str', choices=['low', 'normal', 'high', 'custom']),
+                cpu_shares=dict(type='int'),
+                mem_shares=dict(type='int'),
                 mem_reservation=dict(type='int', aliases=['memory_reservation']),
                 memory_mb=dict(type='int'),
                 memory_reservation_lock=dict(type='bool'),
@@ -3345,6 +3446,7 @@ def main():
                 password=dict(type='str', no_log=True),
                 productid=dict(type='str'),
                 runonce=dict(type='list', elements='str'),
+                script_text=dict(type='str'),
                 timezone=dict(type='str')
             )),
         customization_spec=dict(type='str', default=None),
@@ -3371,13 +3473,13 @@ def main():
     # Check requirements for virtualization based security
     if pyv.params['hardware']['virt_based_security']:
         if not pyv.params['hardware']['nested_virt']:
-            pyv.module.fail("Virtualization based security requires nested virtualization. Please enable nested_virt.")
+            pyv.module.fail_json(msg="Virtualization based security requires nested virtualization. Please enable nested_virt.")
 
         if not pyv.params['hardware']['secure_boot']:
-            pyv.module.fail("Virtualization based security requires (U)EFI secure boot. Please enable secure_boot.")
+            pyv.module.fail_json(msg="Virtualization based security requires (U)EFI secure boot. Please enable secure_boot.")
 
         if not pyv.params['hardware']['iommu']:
-            pyv.module.fail("Virtualization based security requires I/O MMU. Please enable iommu.")
+            pyv.module.fail_json(msg="Virtualization based security requires I/O MMU. Please enable iommu.")
 
     # Check if the VM exists before continuing
     vm = pyv.get_vm()

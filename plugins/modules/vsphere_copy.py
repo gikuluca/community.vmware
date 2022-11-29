@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Copyright: (c) 2015, Dag Wieers (@dagwieers) <dag@wieers.com>
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -17,10 +18,6 @@ description:
 author:
 - Dag Wieers (@dagwieers)
 options:
-  hostname:
-    aliases: ['host']
-  username:
-    aliases: ['login']
   src:
     description:
       - The file to push to vCenter.
@@ -52,7 +49,6 @@ options:
 notes:
   - "This module ought to be run from a system that can access the vCenter or the ESXi directly and has the file to transfer.
     It can be the normal remote target or you can change it either by using C(transport: local) or using C(delegate_to)."
-  - Tested on vSphere 5.5 and ESXi 6.7
 extends_documentation_fragment:
 - community.vmware.vmware.documentation
 
@@ -125,8 +121,6 @@ def vmware_path(datastore, datacenter, path):
 def main():
     argument_spec = vmware_argument_spec()
     argument_spec.update(dict(
-        hostname=dict(required=False, aliases=['host']),
-        username=dict(required=False, aliases=['login']),
         src=dict(required=True, aliases=['name']),
         datacenter=dict(required=False),
         datastore=dict(required=True),
@@ -139,11 +133,6 @@ def main():
         # Implementing check-mode using HEAD is impossible, since size/date is not 100% reliable
         supports_check_mode=False,
     )
-
-    if module.params.get('host'):
-        module.deprecate("The 'host' option is being replaced by 'hostname'", version='3.0.0', collection_name='community.vmware')
-    if module.params.get('login'):
-        module.deprecate("The 'login' option is being replaced by 'username'", version='3.0.0', collection_name='community.vmware')
 
     hostname = module.params['hostname']
     username = module.params['username']

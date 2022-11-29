@@ -8,7 +8,6 @@ community.vmware.vmware_host_custom_attributes
 **Manage custom attributes from VMware for the given ESXi host**
 
 
-Version added: 1.11.0
 
 .. contents::
    :local:
@@ -20,12 +19,6 @@ Synopsis
 - This module can be used to add, remove and update custom attributes for the given ESXi host.
 
 
-
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- PyVmomi
 
 
 Parameters
@@ -265,7 +258,6 @@ Notes
 -----
 
 .. note::
-   - Tested on vSphere 6.7
    - All modules requires API write access and hence is not supported on a free ESXi license.
 
 

@@ -20,13 +20,6 @@ Synopsis
 
 
 
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 2.6
-- PyVmomi
-
 
 Parameters
 ----------
@@ -48,7 +41,6 @@ Parameters
                         <span style="color: purple">list</span>
                          / <span style="color: purple">elements=dictionary</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.11.0</div>
                 </td>
                 <td>
                 </td>
@@ -101,7 +93,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">string</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.13.0</div>
                 </td>
                 <td>
                         <b>Default:</b><br/><div style="color: blue">"ha-datacenter"</div>
@@ -548,7 +539,7 @@ Examples
     - name: Automatically answer if a question locked a virtual machine
       block:
         - name: Power on a virtual machine without the answer param
-          vmware_guest_powerstate:
+          community.vmware.vmware_guest_powerstate:
             hostname: "{{ esxi_hostname }}"
             username: "{{ esxi_username }}"
             password: "{{ esxi_password }}"
@@ -558,7 +549,7 @@ Examples
             state: powered-on
       rescue:
         - name: Power on a virtual machine with the answer param
-          vmware_guest_powerstate:
+          community.vmware.vmware_guest_powerstate:
             hostname: "{{ esxi_hostname }}"
             username: "{{ esxi_username }}"
             password: "{{ esxi_password }}"

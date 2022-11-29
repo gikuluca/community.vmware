@@ -8,7 +8,6 @@ community.vmware.vmware_recommended_datastore
 **Returns the recommended datastore from a SDRS-enabled datastore cluster**
 
 
-Version added: 1.11.0
 
 .. contents::
    :local:
@@ -20,13 +19,6 @@ Synopsis
 - This module provides the recommended datastore name from a datastore cluster only if the SDRS is enabled for the specified datastore cluster
 
 
-
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 3
-- PyVmomi
 
 
 Parameters
@@ -207,7 +199,6 @@ Notes
 -----
 
 .. note::
-   - Tested on vSphere 6.7 and 7.0.2
    - Supports Check mode.
    - All modules requires API write access and hence is not supported on a free ESXi license.
 

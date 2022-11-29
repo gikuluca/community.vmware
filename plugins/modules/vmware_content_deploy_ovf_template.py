@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # Copyright: (c) 2020, Lev Goncharov <lev@goncharov.xyz>
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -16,11 +18,7 @@ description:
 - All variables and VMware object names are case sensitive.
 author:
 - Lev Goncharv (@ultral)
-notes:
-- Tested on vSphere 6.7
 requirements:
-- python >= 2.6
-- PyVmomi
 - vSphere Automation SDK
 options:
     log_level:
@@ -30,7 +28,6 @@ options:
       required: False
       default: 'normal'
       choices: [ 'debug', 'info', 'normal' ]
-      version_added: '1.12.0'
     template:
       description:
       - The name of OVF template from which VM to be deployed.
@@ -43,7 +40,6 @@ options:
       type: str
       required: False
       aliases: ['content_library', 'content_library_src']
-      version_added: '1.5.0'
     name:
       description:
       - The name of the VM to be deployed.
@@ -66,7 +62,6 @@ options:
       - If datastore is not specified, the recommended datastore from this cluster will be used.
       type: str
       required: False
-      version_added: '1.9.0'
     folder:
       description:
       - Name of the folder in datacenter in which to place deployed VM.
@@ -260,7 +255,7 @@ class VmwareContentDeployOvfTemplate(VmwareRestClient):
             self._resourcepool_id = cluster_obj.resource_pool
 
         # Find the resourcepool by the given resourcepool name
-        if self.resourcepool and self.cluster and self.host:
+        if self.resourcepool:
             self._resourcepool_id = self.get_resource_pool_by_name(self.datacenter, self.resourcepool, self.cluster, self.host)
             if not self._resourcepool_id:
                 self._fail(msg="Failed to find the resource_pool %s" % self.resourcepool)

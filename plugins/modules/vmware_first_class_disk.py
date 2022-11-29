@@ -1,8 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # Copyright: (c) 2021, Mario Lenz <m@riolenz.de>
 # Copyright: (c) 2021, Ansible Project
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -11,16 +13,10 @@ DOCUMENTATION = r'''
 ---
 module: vmware_first_class_disk
 short_description: Manage VMware vSphere First Class Disks
-version_added: '1.7.0'
 description:
     - This module can be used to manage (create, delete, resize) VMware vSphere First Class Disks.
 author:
 - Mario Lenz (@mariolenz)
-notes:
-    - Tested on vSphere 7.0
-requirements:
-    - "python >= 2.6"
-    - PyVmomi
 options:
     datacenter_name:
       description: The name of the datacenter.

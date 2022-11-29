@@ -1,9 +1,8 @@
-#
 # Copyright: (c) 2018, Ansible Project
 # Copyright: (c) 2020, dacrystal
 # Copyright: (c) 2021, Abhijeet Kasurde <akasurde@redhat.com>
-#
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 
@@ -21,11 +20,7 @@ DOCUMENTATION = r"""
       - inventory_cache
       - constructed
     requirements:
-      - "Python >= 2.7"
-      - "PyVmomi"
-      - "requests >= 2.3"
       - "vSphere Automation SDK - For tag feature"
-    version_added: "1.11.0"
     options:
         hostname:
             description: Name of vCenter or ESXi server.
@@ -76,6 +71,7 @@ DOCUMENTATION = r"""
             - Ignores template if resulted in an empty string or None value.
             - You can use property specified in I(properties) as variables in the template.
             type: list
+            elements: string
             default: ['name']
         properties:
             description:
@@ -89,6 +85,7 @@ DOCUMENTATION = r"""
             - Use C(all) to populate all the properties of the virtual machine.
               The value C(all) is time consuming operation, do not use unless required absolutely.
             type: list
+            elements: string
             default: [ 'name', 'customValue', 'summary.runtime.powerState' ]
         with_nested_properties:
             description:
@@ -116,6 +113,7 @@ DOCUMENTATION = r"""
             - Key name is based on snake case of a vim type name; e.g C(host_system) correspond to C(vim.HostSystem)
             required: False
             type: list
+            elements: dict
             default: []
         with_path:
             description:
@@ -136,7 +134,6 @@ DOCUMENTATION = r"""
           - This feature depends on a version of pyvmomi>=v6.7.1.2018.12.
           type: str
           required: False
-          version_added: '1.12.0'
           env:
             - name: VMWARE_PROXY_HOST
         proxy_port:
@@ -144,7 +141,6 @@ DOCUMENTATION = r"""
           - Port of the HTTP proxy that will receive all HTTPS requests and relay them.
           type: int
           required: False
-          version_added: '1.12.0'
           env:
             - name: VMWARE_PROXY_PORT
 """

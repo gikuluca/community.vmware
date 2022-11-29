@@ -8,16 +8,17 @@ The collection includes the VMware modules and plugins supported by Ansible VMwa
 
 | Release | Status                      | Expected end of life |
 | ------: | --------------------------: | -------------------: |
-|       2 | Maintained                  |             May 2023 |
-|       1 | Maintained (bug fixes only) |             Nov 2022 |
+|       3 | Maintained                  |             Nov 2024 |
+|       2 | Maintained (bug fixes only) |             Nov 2023 |
+|       1 | Unmaintained                |             Nov 2022 |
 
 <!--start requires_ansible-->
 ## Ansible version compatibility
 
-This collection has been tested against following Ansible versions: **>=2.11.0**.
+This collection has been tested against following Ansible versions: **>=2.13.0**.
 
-For collections that support Ansible 2.9, please ensure you update your `network_os` to use the 
-fully qualified collection name (for example, `cisco.ios.ios`). 
+For collections that support Ansible 2.9, please ensure you update your `network_os` to use the
+fully qualified collection name (for example, `cisco.ios.ios`).
 Plugins and modules within a collection may be tested with only specific Ansible versions.
 A collection may contain metadata that identifies these versions.
 PEP440 is the schema used to describe the versions of Ansible.
@@ -40,7 +41,7 @@ collections:
 
 ### Required Python libraries
 
-VMware community collection depends upon following third party libraries:
+VMware community collection depends on Python 3.8+ and on following third party libraries:
 
 * [`Pyvmomi`](https://github.com/vmware/pyvmomi)
 * [`vSphere Automation SDK for Python`](https://github.com/vmware/vsphere-automation-sdk-python/)
@@ -79,9 +80,6 @@ Name | Description
 ### Modules
 Name | Description
 --- | ---
-[community.vmware.vca_fw](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vca_fw_module.rst)|add remove firewall rules in a gateway  in a vca
-[community.vmware.vca_nat](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vca_nat_module.rst)|add remove nat rules in a gateway  in a vca
-[community.vmware.vca_vapp](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vca_vapp_module.rst)|Manages vCloud Air vApp instances.
 [community.vmware.vcenter_domain_user_group_info](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vcenter_domain_user_group_info_module.rst)|Gather user or group information of a domain
 [community.vmware.vcenter_extension](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vcenter_extension_module.rst)|Register/deregister vCenter Extensions
 [community.vmware.vcenter_extension_info](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vcenter_extension_info_module.rst)|Gather info vCenter extensions
@@ -93,9 +91,11 @@ Name | Description
 [community.vmware.vmware_category_info](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_category_info_module.rst)|Gather info about VMware tag categories
 [community.vmware.vmware_cfg_backup](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_cfg_backup_module.rst)|Backup / Restore / Reset ESXi host configuration
 [community.vmware.vmware_cluster](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_cluster_module.rst)|Manage VMware vSphere clusters
+[community.vmware.vmware_cluster_dpm](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_cluster_dpm_module.rst)|Manage Distributed Power Management (DPM) on VMware vSphere clusters
 [community.vmware.vmware_cluster_drs](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_cluster_drs_module.rst)|Manage Distributed Resource Scheduler (DRS) on VMware vSphere clusters
 [community.vmware.vmware_cluster_ha](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_cluster_ha_module.rst)|Manage High Availability (HA) on VMware vSphere clusters
 [community.vmware.vmware_cluster_info](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_cluster_info_module.rst)|Gather info about clusters available in given vCenter
+[community.vmware.vmware_cluster_vcls](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_cluster_vcls_module.rst)|Override the default vCLS (vSphere Cluster Services) VM disk placement for this cluster.
 [community.vmware.vmware_cluster_vsan](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_cluster_vsan_module.rst)|Manages virtual storage area network (vSAN) configuration on VMware vSphere clusters
 [community.vmware.vmware_content_deploy_ovf_template](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_content_deploy_ovf_template_module.rst)|Deploy Virtual Machine from ovf template stored in content library.
 [community.vmware.vmware_content_deploy_template](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_content_deploy_template_module.rst)|Deploy Virtual Machine from template stored in content library.
@@ -103,12 +103,12 @@ Name | Description
 [community.vmware.vmware_content_library_manager](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_content_library_manager_module.rst)|Create, update and delete VMware content library
 [community.vmware.vmware_datacenter](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_datacenter_module.rst)|Manage VMware vSphere Datacenters
 [community.vmware.vmware_datacenter_info](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_datacenter_info_module.rst)|Gather information about VMware vSphere Datacenters
+[community.vmware.vmware_datastore](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_datastore_module.rst)|Configure Datastores
 [community.vmware.vmware_datastore_cluster](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_datastore_cluster_module.rst)|Manage VMware vSphere datastore clusters
 [community.vmware.vmware_datastore_cluster_manager](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_datastore_cluster_manager_module.rst)|Manage VMware vSphere datastore cluster's members
 [community.vmware.vmware_datastore_info](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_datastore_info_module.rst)|Gather info about datastores available in given vCenter
 [community.vmware.vmware_datastore_maintenancemode](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_datastore_maintenancemode_module.rst)|Place a datastore into maintenance mode
 [community.vmware.vmware_deploy_ovf](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_deploy_ovf_module.rst)|Deploys a VMware virtual machine from an OVF or OVA file
-[community.vmware.vmware_dns_config](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_dns_config_module.rst)|Manage VMware ESXi DNS Configuration
 [community.vmware.vmware_drs_group](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_drs_group_module.rst)|Creates vm/host group in a given cluster.
 [community.vmware.vmware_drs_group_info](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_drs_group_info_module.rst)|Gathers info about DRS VM/Host groups on the given cluster
 [community.vmware.vmware_drs_group_manager](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_drs_group_manager_module.rst)|Manage VMs and Hosts in DRS group.
@@ -155,8 +155,8 @@ Name | Description
 [community.vmware.vmware_guest_tools_upgrade](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_guest_tools_upgrade_module.rst)|Module to upgrade VMTools
 [community.vmware.vmware_guest_tools_wait](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_guest_tools_wait_module.rst)|Wait for VMware tools to become available
 [community.vmware.vmware_guest_tpm](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_guest_tpm_module.rst)|Add or remove vTPM device for specified VM.
+[community.vmware.vmware_guest_vgpu](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_guest_vgpu_module.rst)|Modify vGPU video card profile of the specified virtual machine in the given vCenter infrastructure
 [community.vmware.vmware_guest_video](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_guest_video_module.rst)|Modify video card configurations of specified virtual machine in given vCenter infrastructure
-[community.vmware.vmware_guest_vnc](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_guest_vnc_module.rst)|Manages VNC remote display on virtual machines in vCenter
 [community.vmware.vmware_host](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_host_module.rst)|Add, remove, or move an ESXi host to, from, or within vCenter
 [community.vmware.vmware_host_acceptance](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_host_acceptance_module.rst)|Manage the host acceptance level of an ESXi host
 [community.vmware.vmware_host_active_directory](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_host_active_directory_module.rst)|Joins an ESXi host system to an Active Directory domain or leaves it
@@ -179,6 +179,7 @@ Name | Description
 [community.vmware.vmware_host_iscsi_info](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_host_iscsi_info_module.rst)|Gather iSCSI configuration information of ESXi host
 [community.vmware.vmware_host_kernel_manager](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_host_kernel_manager_module.rst)|Manage kernel module options on ESXi hosts
 [community.vmware.vmware_host_lockdown](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_host_lockdown_module.rst)|Manage administrator permission for the local administrative account for the ESXi host
+[community.vmware.vmware_host_lockdown_exceptions](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_host_lockdown_exceptions_module.rst)|Manage Lockdown Mode Exception Users
 [community.vmware.vmware_host_logbundle](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_host_logbundle_module.rst)|Fetch logbundle file from ESXi
 [community.vmware.vmware_host_logbundle_info](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_host_logbundle_info_module.rst)|Gathers manifest info for logbundle
 [community.vmware.vmware_host_ntp](https://github.com/ansible-collections/community.vmware/blob/main/docs/community.vmware.vmware_host_ntp_module.rst)|Manage NTP server configuration of an ESXi host
@@ -246,7 +247,7 @@ Name | Description
 
 If you want to develop new content for this collection or improve what is already here, the easiest way to work on the collection is to clone it into one of the configured [`COLLECTIONS_PATHS`](https://docs.ansible.com/ansible/latest/reference_appendices/config.html#collections-paths), and work on it there.
 
-- [Guidelines for VMware module development](https://docs.ansible.com/ansible/latest/dev_guide/platforms/vmware_guidelines.html)
+- [Guidelines for VMware module development](https://docs.ansible.com/ansible/latest/collections/community/vmware/docsite/dev_guide.html)
 
 ### Testing with `ansible-test`
 
@@ -258,14 +259,22 @@ Refer [testing](testing.md) for more information.
 
 ## Publishing New Version
 
+Assuming your (local) repository has set `origin` to your GitHub fork and this repository is added as `upstream`:
+
 Prepare the release:
-- Make sure your fork is up to date; assuming your (local) repository has set `origin` to your GitHub fork and this repository is added as `upstream`: `git checkout main && git pull && git fetch upstream && git merge upstream/main`.
+- Make sure your fork is up to date: `git checkout main && git pull && git fetch upstream && git merge upstream/main`.
 - Run `ansible-playbook tools/prepare_release.yml`. The playbook tries to generate the next minor release automatically, but you can also set the version explicitly with `--extra-vars "version=$VERSION"`. You *will* have to set the version explicitly when publishing a new major release.
-- Push the created release branch `prepare_$VERSION_release` to your GitHub repo and open a PR for review.
+- Push the created release branch to your GitHub repo (`git push --set-upstream origin prepare_$VERSION_release`) and open a PR for review.
 
 Push the release:
+- After the PR has been merged, make sure your fork is up to date: `git checkout main && git pull && git fetch upstream && git merge upstream/main`.
 - Tag the release: `git tag -s $VERSION`
-- Push the tag: `git push origin $VERSION`
+- Push the tag: `git push upstream $VERSION`
+
+Revert the version in `galaxy.yml` back to `null`:
+- Make sure your fork is up to date: `git checkout main && git pull && git fetch upstream && git merge upstream/main`.
+- Run `ansible-playbook tools/unset_version.yml`.
+- Push the created branch to your GitHub repo (`git push --set-upstream origin unset_version_$VERSION`) and open a PR for review.
 
 ## Communication
 

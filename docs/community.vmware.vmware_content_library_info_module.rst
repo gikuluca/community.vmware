@@ -27,8 +27,6 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.6
-- PyVmomi
 - vSphere Automation SDK
 
 
@@ -135,7 +133,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">string</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.12.0</div>
                 </td>
                 <td>
                 </td>
@@ -153,7 +150,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">integer</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.12.0</div>
                 </td>
                 <td>
                 </td>
@@ -203,12 +199,6 @@ Parameters
     </table>
     <br/>
 
-
-Notes
------
-
-.. note::
-   - Tested on vSphere 6.5, 6.7
 
 
 

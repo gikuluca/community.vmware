@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-#
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -296,7 +297,7 @@ class PyVmomiDeviceHelper(object):
             pf_backing = device_infos.get('physical_function_backing', None)
             vf_backing = device_infos.get('virtual_function_backing', None)
 
-            nic.device.allowGuestOSMtuChange = bool(device_infos.get('allow_gest_os_mtu_change', True))
+            nic.device.allowGuestOSMtuChange = bool(device_infos.get('allow_guest_os_mtu_change', True))
             nic.device.sriovBacking = vim.vm.device.VirtualSriovEthernetCard.SriovBackingInfo()
             if pf_backing is not None:
                 nic.device.sriovBacking.physicalFunctionBacking = vim.vm.device.VirtualPCIPassthrough.DeviceBackingInfo()

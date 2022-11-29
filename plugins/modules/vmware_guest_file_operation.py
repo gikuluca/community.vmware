@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Copyright: (c) 2017, Stéphane Travassac <stravassac@gmail.com>
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -17,12 +18,7 @@ description:
 author:
   - Stéphane Travassac (@stravassac)
 notes:
-    - Tested on vSphere 6
     - Only the first match against vm_id is used, even if there are multiple matches
-requirements:
-    - "python >= 2.6"
-    - PyVmomi
-    - requests
 options:
     datacenter:
         description:
@@ -151,6 +147,12 @@ options:
                 type: str
         required: False
         type: dict
+    timeout:
+        description:
+            - Timeout seconds for fetching or copying a file.
+        type: int
+        default: 100
+        version_added: '3.1.0'
 
 extends_documentation_fragment:
 - community.vmware.vmware.documentation
@@ -201,6 +203,22 @@ EXAMPLES = r'''
         src: "/root/test.zip"
         dest: "files/test.zip"
   delegate_to: localhost
+
+- name: If a timeout error occurs, specify a high(er) timeout value
+  community.vmware.vmware_guest_file_operation:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    datacenter: "{{ datacenter_name }}"
+    vm_id: "{{ guest_name }}"
+    vm_username: "{{ guest_username }}"
+    vm_password: "{{ guest_userpassword }}"
+    timeout: 10000
+    copy:
+        src: "files/test.zip"
+        dest: "/root/test.zip"
+        overwrite: False
+  delegate_to: localhost
 '''
 
 RETURN = r'''
@@ -226,6 +244,7 @@ class VmwareGuestFileManager(PyVmomi):
         datacenter_name = module.params['datacenter']
         cluster_name = module.params['cluster']
         folder = module.params['folder']
+        self.timeout = module.params['timeout']
 
         datacenter = None
         if datacenter_name:
@@ -349,7 +368,7 @@ class VmwareGuestFileManager(PyVmomi):
                                                                           guestFilePath=src)
             url = fileTransferInfo.url
             url = url.replace("*", hostname)
-            resp, info = urls.fetch_url(self.module, url, method="GET")
+            resp, info = urls.fetch_url(self.module, url, method="GET", timeout=self.timeout)
             if info.get('status') != 200 or not resp:
                 self.module.fail_json(msg="Failed to fetch file : %s" % info.get('msg', ''), body=info.get('body', ''))
             try:
@@ -407,7 +426,7 @@ class VmwareGuestFileManager(PyVmomi):
                                                            fileAttributes=file_attributes, overwrite=overwrite,
                                                            fileSize=file_size)
             url = url.replace("*", hostname)
-            resp, info = urls.fetch_url(self.module, url, data=data, method="PUT")
+            resp, info = urls.fetch_url(self.module, url, data=data, method="PUT", timeout=self.timeout)
 
             status_code = info["status"]
             if status_code != 200:
@@ -474,7 +493,8 @@ def main():
                 src=dict(required=True, type='str'),
                 dest=dict(required=True, type='str'),
             )
-        )
+        ),
+        timeout=dict(type='int', default=100)
     )
     )
 

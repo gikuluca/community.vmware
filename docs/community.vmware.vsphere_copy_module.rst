@@ -78,7 +78,6 @@ Parameters
                         <div>The hostname or IP address of the vSphere vCenter or ESXi server.</div>
                         <div>If the value is not specified in the task, the value of environment variable <code>VMWARE_HOST</code> will be used instead.</div>
                         <div>Environment variable support added in Ansible 2.6.</div>
-                        <div style="font-size: small; color: darkgreen"><br/>aliases: host</div>
                 </td>
             </tr>
             <tr>
@@ -216,7 +215,7 @@ Parameters
                         <div>The username of the vSphere vCenter or ESXi server.</div>
                         <div>If the value is not specified in the task, the value of environment variable <code>VMWARE_USER</code> will be used instead.</div>
                         <div>Environment variable support added in Ansible 2.6.</div>
-                        <div style="font-size: small; color: darkgreen"><br/>aliases: login</div>
+                        <div style="font-size: small; color: darkgreen"><br/>aliases: admin, user</div>
                 </td>
             </tr>
             <tr>
@@ -250,7 +249,6 @@ Notes
 
 .. note::
    - This module ought to be run from a system that can access the vCenter or the ESXi directly and has the file to transfer. It can be the normal remote target or you can change it either by using ``transport: local`` or using ``delegate_to``.
-   - Tested on vSphere 5.5 and ESXi 6.7
    - All modules requires API write access and hence is not supported on a free ESXi license.
 
 

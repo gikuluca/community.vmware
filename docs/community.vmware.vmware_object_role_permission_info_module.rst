@@ -8,7 +8,6 @@ community.vmware.vmware_object_role_permission_info
 **Gather information about object's permissions**
 
 
-Version added: 1.11.0
 
 .. contents::
    :local:
@@ -20,13 +19,6 @@ Synopsis
 - This module can be used to gather object permissions on the given VMware object.
 
 
-
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 3
-- PyVmomi
 
 
 Parameters
@@ -111,6 +103,8 @@ Parameters
                                     <li>ComputeResource</li>
                                     <li>ClusterComputeResource</li>
                                     <li>DistributedVirtualSwitch</li>
+                                    <li>DistributedVirtualPortgroup</li>
+                                    <li>StoragePod</li>
                         </ul>
                 </td>
                 <td>
@@ -161,7 +155,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">string</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.12.0</div>
                 </td>
                 <td>
                 </td>
@@ -252,7 +245,6 @@ Notes
 -----
 
 .. note::
-   - Tested on ESXi 6.5, vSphere 6.7
    - The ESXi login user must have the appropriate rights to administer permissions.
    - Supports check mode.
    - All modules requires API write access and hence is not supported on a free ESXi license.

@@ -1,10 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # Copyright: (c) 2018, Derek Rushing <derek.rushing@geekops.com>
 # Copyright: (c) 2018, VMware, Inc.
 # Copyright: (c) 2021, Ansible Project
 # Copyright: (c) 2021, Abhijeet Kasurde <akasurde@redhat.com>
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 
@@ -19,12 +21,8 @@ description: This module can be used to gather object permissions on the given V
 author:
 - Abhijeet Kasurde (@Akasurde)
 notes:
-    - Tested on ESXi 6.5, vSphere 6.7
     - The ESXi login user must have the appropriate rights to administer permissions.
     - Supports check mode.
-requirements:
-    - "python >= 3"
-    - PyVmomi
 options:
   principal:
     description:
@@ -32,7 +30,6 @@ options:
     - If provided, actual permissions on the specified object are returned for the principal, instead of roles.
     type: str
     required: False
-    version_added: '1.12.0'
   object_name:
     description:
     - The object name to assigned permission.
@@ -44,7 +41,8 @@ options:
     default: 'Folder'
     choices: ['Folder', 'VirtualMachine', 'Datacenter', 'ResourcePool',
               'Datastore', 'Network', 'HostSystem', 'ComputeResource',
-              'ClusterComputeResource', 'DistributedVirtualSwitch']
+              'ClusterComputeResource', 'DistributedVirtualSwitch',
+              'DistributedVirtualPortgroup', 'StoragePod']
     type: str
   moid:
     description:
@@ -54,7 +52,6 @@ options:
     type: 'str'
 extends_documentation_fragment:
 - community.vmware.vmware.documentation
-version_added: "1.11.0"
 """
 
 EXAMPLES = r"""
@@ -252,6 +249,8 @@ def main():
                     "ComputeResource",
                     "ClusterComputeResource",
                     "DistributedVirtualSwitch",
+                    "DistributedVirtualPortgroup",
+                    "StoragePod",
                 ],
             ),
             moid=dict(

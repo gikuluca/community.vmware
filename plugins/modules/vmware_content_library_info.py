@@ -1,8 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # Copyright: (c) 2019, Ansible Project
 # Copyright: (c) 2019, Pavan Bidkar <pbidkar@vmware.com>
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -19,11 +21,7 @@ description:
 - All variables and VMware object names are case sensitive.
 author:
 - Pavan Bidkar (@pgbidkar)
-notes:
-- Tested on vSphere 6.5, 6.7
 requirements:
-- python >= 2.6
-- PyVmomi
 - vSphere Automation SDK
 options:
     library_id:
@@ -95,25 +93,46 @@ class VmwareContentLibInfo(VmwareRestClient):
         """Constructor."""
         super(VmwareContentLibInfo, self).__init__(module)
         self.content_service = self.api_client
+        self.local_content_libraries = self.content_service.content.LocalLibrary.list()
+        if self.local_content_libraries is None:
+            self.local_content_libraries = []
+
+        self.subscribed_content_libraries = self.content_service.content.SubscribedLibrary.list()
+        if self.subscribed_content_libraries is None:
+            self.subscribed_content_libraries = []
+
         self.library_info = []
 
     def get_all_content_libs(self):
         """Method to retrieve List of content libraries."""
-        self.module.exit_json(changed=False, content_libs=self.content_service.content.LocalLibrary.list())
+        content_libraries = self.local_content_libraries + self.subscribed_content_libraries
+
+        self.module.exit_json(changed=False, content_libs=content_libraries)
 
     def get_content_lib_details(self, library_id):
         """Method to retrieve Details of contentlib with library_id"""
-        try:
-            lib_details = self.content_service.content.LocalLibrary.get(library_id)
-        except Exception as e:
-            self.module.fail_json(exists=False, msg="%s" % self.get_error_message(e))
-        lib_publish_info = dict(
-            persist_json_enabled=lib_details.publish_info.persist_json_enabled,
-            authentication_method=lib_details.publish_info.authentication_method,
-            publish_url=lib_details.publish_info.publish_url,
-            published=lib_details.publish_info.published,
-            user_name=lib_details.publish_info.user_name
-        )
+        lib_publish_info = None
+
+        if library_id in self.local_content_libraries:
+            try:
+                lib_details = self.content_service.content.LocalLibrary.get(library_id)
+                lib_publish_info = dict(
+                    persist_json_enabled=lib_details.publish_info.persist_json_enabled,
+                    authentication_method=lib_details.publish_info.authentication_method,
+                    publish_url=lib_details.publish_info.publish_url,
+                    published=lib_details.publish_info.published,
+                    user_name=lib_details.publish_info.user_name
+                )
+            except Exception as e:
+                self.module.fail_json(exists=False, msg="%s" % self.get_error_message(e))
+        elif library_id in self.subscribed_content_libraries:
+            try:
+                lib_details = self.content_service.content.SubscribedLibrary.get(library_id)
+            except Exception as e:
+                self.module.fail_json(exists=False, msg="%s" % self.get_error_message(e))
+        else:
+            self.module.fail_json(exists=False, msg="Library %s not found." % library_id)
+
         self.library_info.append(
             dict(
                 library_name=lib_details.name,

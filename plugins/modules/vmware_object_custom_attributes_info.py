@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Copyright: (c) 2021, sky-joker
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -17,10 +18,6 @@ description:
   - This module can be gathered custom attributes of an object.
 notes:
   - Supports C(check_mode).
-requirements:
-  - python >= 3.6
-  - PyVmomi
-version_added: '1.11.0'
 options:
   object_type:
     description:
@@ -114,6 +111,10 @@ from ansible_collections.community.vmware.plugins.module_utils.vmware import PyV
 class VmwareCustomAttributesInfo(PyVmomi):
     def __init__(self, module):
         super(VmwareCustomAttributesInfo, self).__init__(module)
+
+        if not self.is_vcenter():
+            self.module.fail_json(msg="You have to connect to a vCenter server!")
+
         self.object_type = self.params['object_type']
         self.object_name = self.params['object_name']
         self.moid = self.params['moid']
@@ -159,7 +160,7 @@ class VmwareCustomAttributesInfo(PyVmomi):
         for key, value in available_fields.items():
             attribute_result = {
                 'attribute': value['name'],
-                'type': self.to_json(value['type']).replace('vim.', ''),
+                'type': self.to_json(value['type']).replace('vim.', '') if value['type'] is not None else 'Global',
                 'key': key,
                 'value': None
             }

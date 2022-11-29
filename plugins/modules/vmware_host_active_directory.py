@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Copyright: (c) 2018, Christian Kotte <christian.kotte@gmx.de>
-#
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -17,25 +17,23 @@ description:
 - This module can be used to join or leave an ESXi host to or from an Active Directory domain.
 author:
 - Christian Kotte (@ckotte)
-notes:
-- Tested on vSphere 6.5
-requirements:
-- python >= 2.6
-- PyVmomi
 options:
   ad_domain:
     description:
         - AD Domain to join.
     type: str
+    default: ''
     aliases: [ domain, domain_name ]
   ad_user:
     description:
         - Username for AD domain join.
     type: str
+    default: ''
   ad_password:
     description:
         - Password for AD domain join.
     type: str
+    default: ''
   ad_state:
      description:
         - Whether the ESXi host is joined to an AD domain or not.

@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+
 # Copyright: (c) 2015, Joseph Callen <jcallen () csc.com>
 # Copyright: (c) 2018, Ansible Project
 # Copyright: (c) 2018, James E. King III (@jeking3) <jking@apache.org>
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -17,7 +19,7 @@ import time
 import traceback
 import datetime
 from collections import OrderedDict
-from distutils.version import StrictVersion
+from ansible_collections.community.vmware.plugins.module_utils.version import StrictVersion
 from random import randint
 
 REQUESTS_IMP_ERR = None
@@ -287,7 +289,7 @@ def find_folder_by_fqpn(content, folder_name, datacenter_name=None, folder_type=
         for part in folder_parts:
             folder_obj = None
             for part_obj in parent_obj.childEntity:
-                if part_obj.name == part and 'Folder' in part_obj.childType:
+                if part_obj.name == part and ('Folder' in part_obj.childType or vim.Folder in part_obj.childType):
                     folder_obj = part_obj
                     parent_obj = part_obj
                     break
@@ -1094,13 +1096,6 @@ def quote_obj_name(object_name=None):
             object_name = object_name.replace(key, SPECIAL_CHARS[key])
 
     return object_name
-
-
-def dvs_supports_mac_learning(dvs):
-    """
-    Test if the switch supports MAC learning
-    """
-    return hasattr(dvs.capability.featuresSupported, 'macLearningSupported') and dvs.capability.featuresSupported.macLearningSupported
 
 
 class PyVmomi(object):

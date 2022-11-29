@@ -21,13 +21,6 @@ Synopsis
 
 
 
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 2.7
-- PyVmomi
-
 
 Parameters
 ----------
@@ -68,7 +61,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">string</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.11.0</div>
                 </td>
                 <td>
                         <ul style="margin: 0; padding: 0"><b>Choices:</b>
@@ -440,7 +432,6 @@ Notes
 -----
 
 .. note::
-   - Tested on vSphere 6.0, 6.5 and 6.7
    - All modules requires API write access and hence is not supported on a free ESXi license.
 
 

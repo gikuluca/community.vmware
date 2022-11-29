@@ -21,13 +21,6 @@ Synopsis
 
 
 
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 2.6
-- PyVmomi
-
 
 Parameters
 ----------
@@ -48,7 +41,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">dictionary</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.11.0</div>
                 </td>
                 <td>
                         <b>Default:</b><br/><div style="color: blue">{}</div>
@@ -896,7 +888,6 @@ Notes
 -----
 
 .. note::
-   - Tested with vCenter Server Appliance (vCSA) 6.5 and 6.7
    - All modules requires API write access and hence is not supported on a free ESXi license.
 
 

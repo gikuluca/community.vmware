@@ -8,7 +8,6 @@ community.vmware.vmware_host_tcpip_stacks
 **Manage the TCP/IP Stacks configuration of ESXi host**
 
 
-Version added: 1.10.0
 
 .. contents::
    :local:
@@ -20,13 +19,6 @@ Synopsis
 - This module can be used to modify the TCP/IP stacks configuration.
 
 
-
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 2.7
-- PyVmomi
 
 
 Parameters
@@ -150,7 +142,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">string</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.11.0</div>
                 </td>
                 <td>
                 </td>
@@ -339,7 +330,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">string</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.11.0</div>
                 </td>
                 <td>
                 </td>
@@ -499,7 +489,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">string</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.11.0</div>
                 </td>
                 <td>
                 </td>
@@ -586,7 +575,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">string</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.11.0</div>
                 </td>
                 <td>
                 </td>

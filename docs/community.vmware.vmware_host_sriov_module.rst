@@ -8,7 +8,6 @@ community.vmware.vmware_host_sriov
 **Manage SR-IOV settings on host**
 
 
-Version added: 1.0.0
 
 .. contents::
    :local:
@@ -22,13 +21,6 @@ Synopsis
 - User can specify an ESXi hostname or Cluster name. In case of cluster name, all ESXi hosts are updated.
 
 
-
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 2.7
-- PyVmomi
 
 
 Parameters
@@ -264,7 +256,6 @@ Notes
 -----
 
 .. note::
-   - Tested on vSphere 6.0
    - All modules requires API write access and hence is not supported on a free ESXi license.
 
 

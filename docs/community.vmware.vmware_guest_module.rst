@@ -21,13 +21,6 @@ Synopsis
 
 
 
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 2.6
-- PyVmomi
-
 
 Parameters
 ----------
@@ -49,7 +42,6 @@ Parameters
                         <span style="color: purple">list</span>
                          / <span style="color: purple">elements=dictionary</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.8.0</div>
                 </td>
                 <td>
                 </td>
@@ -572,6 +564,26 @@ Parameters
                 <td>
                         <div>List of commands to run at first user logon.</div>
                         <div>Specific to Windows customization.</div>
+                </td>
+            </tr>
+            <tr>
+                    <td class="elbow-placeholder"></td>
+                <td colspan="1">
+                    <div class="ansibleOptionAnchor" id="parameter-"></div>
+                    <b>script_text</b>
+                    <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
+                    <div style="font-size: small">
+                        <span style="color: purple">string</span>
+                    </div>
+                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 3.1.0</div>
+                </td>
+                <td>
+                </td>
+                <td>
+                        <div>Script to run with shebang.</div>
+                        <div>Needs to be enabled in vmware tools with vmware-toolbox-cmd config set deployPkg enable-custom-scripts true</div>
+                        <div>https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.vm_admin.doc/GUID-9A5093A5-C54F-4502-941B-3F9C0F573A39.html</div>
+                        <div>Specific to Linux customization.</div>
                 </td>
             </tr>
             <tr>
@@ -1187,7 +1199,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">boolean</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.11.0</div>
                 </td>
                 <td>
                         <ul style="margin: 0; padding: 0"><b>Choices:</b>
@@ -1371,7 +1382,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">boolean</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.11.0</div>
                 </td>
                 <td>
                         <ul style="margin: 0; padding: 0"><b>Choices:</b>
@@ -1542,6 +1552,7 @@ Parameters
                         <div>A list of networks (in the order of the NICs).</div>
                         <div>Removing NICs is not allowed, while reconfiguring the virtual machine.</div>
                         <div>All parameters and VMware object names are case sensitive.</div>
+                        <div>The <em>type</em>, <em>ip</em>, <em>netmask</em>, <em>gateway</em>, <em>domain</em>, <em>dns_servers</em> options don&#x27;t set to a guest when creating a blank new virtual machine. They are set by the customization via vmware-tools. If you want to set the value of the options to a guest, you need to clone from a template with installed OS and vmware-tools(also Perl when Linux).</div>
                 </td>
             </tr>
                                 <tr>
@@ -1553,7 +1564,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">boolean</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.5.0</div>
                 </td>
                 <td>
                         <ul style="margin: 0; padding: 0"><b>Choices:</b>
@@ -1795,7 +1805,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">dictionary</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.13.0</div>
                 </td>
                 <td>
                 </td>
@@ -2298,7 +2307,6 @@ Notes
    -    Network > Assign Network
    -    Resource > Assign Virtual Machine to Resource Pool
    - Module may require additional privileges as well, which may be required for gathering facts - e.g. ESXi configurations.
-   - Tested on vSphere 5.5, 6.0, 6.5 and 6.7.
    - Use SCSI disks instead of IDE when you want to expand online disks by specifying a SCSI controller.
    - Uses SysPrep for Windows VM (depends on 'guest_id' parameter match 'win') with PyVmomi.
    - In order to change the VM's parameters (e.g. number of CPUs), the VM must be powered off unless the hot-add support is enabled and the ``state=present`` must be used to apply the changes.
@@ -2442,6 +2450,9 @@ Examples
           dns_suffix:
             - example.com
             - example2.com
+          script_text: |
+            #!/bin/bash
+            touch /tmp/touch-from-playbook
       delegate_to: localhost
 
     - name: Rename a virtual machine (requires the virtual machine's uuid)

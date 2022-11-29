@@ -8,7 +8,6 @@ community.vmware.vmware_object_custom_attributes_info
 **Gather custom attributes of an object**
 
 
-Version added: 1.11.0
 
 .. contents::
    :local:
@@ -20,13 +19,6 @@ Synopsis
 - This module can be gathered custom attributes of an object.
 
 
-
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 3.6
-- PyVmomi
 
 
 Parameters

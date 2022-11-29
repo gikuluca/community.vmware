@@ -1,9 +1,8 @@
-#
 # Copyright: (c) 2018, Ansible Project
 # Copyright: (c) 2018, Abhijeet Kasurde <akasurde@redhat.com>
 # Copyright: (c) 2020, dacrystal
-#
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
@@ -20,8 +19,6 @@ DOCUMENTATION = r'''
       - inventory_cache
       - constructed
     requirements:
-      - "Python >= 2.7"
-      - "PyVmomi"
       - "requests >= 2.3"
       - "vSphere Automation SDK - For tag feature"
     options:
@@ -74,6 +71,7 @@ DOCUMENTATION = r'''
             - Ignores template if resulted in an empty string or None value.
             - You can use property specified in I(properties) as variables in the template.
             type: list
+            elements: string
             default: ['config.name + "_" + config.uuid']
         properties:
             description:
@@ -90,6 +88,7 @@ DOCUMENTATION = r'''
             - Please refer more VMware guest attributes which can be used as properties
               U(https://github.com/ansible/ansible/blob/devel/docs/docsite/rst/scenario_guides/vmware_scenarios/vmware_inventory_vm_attributes.rst)
             type: list
+            elements: string
             default: [ 'name', 'config.cpuHotAddEnabled', 'config.cpuHotRemoveEnabled',
                        'config.instanceUuid', 'config.hardware.numCPU', 'config.template',
                        'config.name', 'config.uuid', 'guest.hostName', 'guest.ipAddress',
@@ -125,6 +124,7 @@ DOCUMENTATION = r'''
             - See  L(VIM Types,https://pubs.vmware.com/vi-sdk/visdk250/ReferenceGuide/index-mo_types.html)
             required: False
             type: list
+            elements: dict
             default: []
         with_path:
             description:
@@ -145,7 +145,6 @@ DOCUMENTATION = r'''
           - This feature depends on a version of pyvmomi>=v6.7.1.2018.12.
           type: str
           required: False
-          version_added: '1.12.0'
           env:
             - name: VMWARE_PROXY_HOST
         proxy_port:
@@ -153,7 +152,6 @@ DOCUMENTATION = r'''
           - Port of the HTTP proxy that will receive all HTTPS requests and relay them.
           type: int
           required: False
-          version_added: '1.12.0'
           env:
             - name: VMWARE_PROXY_PORT
 '''
@@ -337,6 +335,26 @@ EXAMPLES = r'''
       - 'guest.ipAddress'
       - 'guest.guestFamily'
       - 'guest.ipStack'
+
+# Select a specific IP address for use by ansible when multiple NICs are present on the VM
+    plugin: community.vmware.vmware_vm_inventory
+    strict: False
+    hostname: 10.65.223.31
+    username: administrator@vsphere.local
+    password: Esxi@123$%
+    validate_certs: False
+    compose:
+      # Set the IP address used by ansible to one that starts by 10.42. or 10.43.
+      ansible_host: >-
+        guest.net
+        | selectattr('ipAddress')
+        | map(attribute='ipAddress')
+        | flatten
+        | select('match', '^10.42.*|^10.43.*')
+        | list
+        | first
+    properties:
+      - guest.net
 '''
 
 from ansible.errors import AnsibleError, AnsibleParserError

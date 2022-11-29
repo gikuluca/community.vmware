@@ -25,8 +25,6 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- Tested on ESXi 6.7.
-- PyVmomi installed.
 - vSAN Management SDK, which needs to be downloaded from VMware and installed manually.
 
 
@@ -49,7 +47,6 @@ Parameters
                     <div style="font-size: small">
                         <span style="color: purple">dictionary</span>
                     </div>
-                    <div style="font-style: italic; font-size: small; color: darkgreen">added in 1.1.0</div>
                 </td>
                 <td>
                 </td>

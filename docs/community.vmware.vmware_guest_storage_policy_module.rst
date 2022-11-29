@@ -8,7 +8,6 @@ community.vmware.vmware_guest_storage_policy
 **Set VM Home and disk(s) storage policy profiles.**
 
 
-Version added: 1.9.0
 
 .. contents::
    :local:
@@ -20,12 +19,6 @@ Synopsis
 - This module can be used to enforce storage policy profiles per disk and/or VM Home on a virtual machine.
 
 
-
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- pyVmomi
 
 
 Parameters
@@ -338,7 +331,6 @@ Notes
 -----
 
 .. note::
-   - Tested on vSphere 6.0 and 6.5
    - All modules requires API write access and hence is not supported on a free ESXi license.
 
 

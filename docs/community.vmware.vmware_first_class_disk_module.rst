@@ -8,7 +8,6 @@ community.vmware.vmware_first_class_disk
 **Manage VMware vSphere First Class Disks**
 
 
-Version added: 1.7.0
 
 .. contents::
    :local:
@@ -20,13 +19,6 @@ Synopsis
 - This module can be used to manage (create, delete, resize) VMware vSphere First Class Disks.
 
 
-
-Requirements
-------------
-The below requirements are needed on the host that executes this module.
-
-- python >= 2.6
-- PyVmomi
 
 
 Parameters
@@ -262,7 +254,6 @@ Notes
 -----
 
 .. note::
-   - Tested on vSphere 7.0
    - All modules requires API write access and hence is not supported on a free ESXi license.
 
 

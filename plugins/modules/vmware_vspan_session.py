@@ -1,9 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 # Copyright: (c) 2018, Ansible Project
 # Copyright: (c) 2018, CrySyS Lab <www.crysys.hu>
 # Copyright: (c) 2018, Peter Gyorgy <gyorgy.peter@edu.bme.hu>
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSES/GPL-3.0-or-later.txt or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 from __future__ import absolute_import, division, print_function
 
@@ -18,11 +20,6 @@ description:
    - This module can be used to create, delete or edit different kind of port mirroring sessions.
 author:
 - Peter Gyorgy (@gyorgypeter)
-notes:
-    - Tested on vSphere 6.7
-requirements:
-    - "python > =  2.6"
-    - PyVmomi
 options:
     switch:
         description:
@@ -357,9 +354,8 @@ class VMwareVspanSession(PyVmomi):
         """
         # Creating the new port policy
         port_spec = []
-        vim_bool = vim.BoolPolicy(value=state)
-        port_policy = vim.dvs.VmwareDistributedVirtualSwitch.SecurityPolicy(allowPromiscuous=vim_bool)
-        port_settings = vim.dvs.VmwareDistributedVirtualSwitch.VmwarePortConfigPolicy(securityPolicy=port_policy)
+        port_policy = vim.dvs.VmwareDistributedVirtualSwitch.MacManagementPolicy(allowPromiscuous=state)
+        port_settings = vim.dvs.VmwareDistributedVirtualSwitch.VmwarePortConfigPolicy(macManagementPolicy=port_policy)
         for port in ports:
             temp_port_spec = vim.dvs.DistributedVirtualPort.ConfigSpec(
                 operation="edit",
@@ -391,35 +387,35 @@ class VMwareVspanSession(PyVmomi):
                 for port in session_ports:
                     if vspan_session.name == self.name:
                         ports_of_selected_session.append(port)
-                    elif not(port in ports):
+                    elif not (port in ports):
                         ports.append(port)
             if vspan_session.sourcePortTransmitted is not None:
                 session_ports = vspan_session.sourcePortTransmitted.portKey
                 for port in session_ports:
                     if vspan_session.name == self.name:
                         ports_of_selected_session.append(port)
-                    elif not(port in ports):
+                    elif not (port in ports):
                         ports.append(port)
             if vspan_session.destinationPort is not None:
                 session_ports = vspan_session.destinationPort.portKey
                 for port in session_ports:
                     if vspan_session.name == self.name:
                         ports_of_selected_session.append(port)
-                    elif not(port in ports):
+                    elif not (port in ports):
                         ports.append(port)
         promiscuous_ports = []
         if ports:
             dv_ports = self.dv_switch.FetchDVPorts(vim.dvs.PortCriteria(portKey=ports))
             # If a port is promiscuous set disable it, and add it to the array to enable it after the changes are made.
             for dv_port in dv_ports:
-                if dv_port.config.setting.securityPolicy.allowPromiscuous.value:
+                if dv_port.config.setting.macManagementPolicy.allowPromiscuous:
                     self.set_port_security_promiscuous([dv_port.key], False)
                     self.modified_ports.update({dv_port.key: True})
                     promiscuous_ports.append(dv_port.key)
         if ports_of_selected_session:
             current_dv_ports = self.dv_switch.FetchDVPorts(vim.dvs.PortCriteria(portKey=ports_of_selected_session))
             for dv_port in current_dv_ports:
-                if dv_port.config.setting.securityPolicy.allowPromiscuous.value:
+                if dv_port.config.setting.macManagementPolicy.allowPromiscuous:
                     self.set_port_security_promiscuous([dv_port.key], False)
                     self.modified_ports.update({dv_port.key: True})
         # Return the promiscuous ports array, to set them back after the config is finished.
@@ -600,7 +596,7 @@ class VMwareVspanSession(PyVmomi):
         if ports:
             dv_ports = self.dv_switch.FetchDVPorts(vim.dvs.PortCriteria(portKey=ports))
         for dv_port in dv_ports:
-            if dv_port.config.setting.securityPolicy.allowPromiscuous.value:
+            if dv_port.config.setting.macManagementPolicy.allowPromiscuous:
                 self.set_port_security_promiscuous([dv_port.key], False)
                 self.modified_ports.update({dv_port.key: True})
         # Now we can create the VspanSession
